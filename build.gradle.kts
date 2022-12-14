@@ -12,10 +12,15 @@ repositories {
 
 kotlin {
     jvm()
-    /*js(IR).browser()
+    js(IR).browser()
     ios()
-    iosSimulatorArm64()*/
+    iosSimulatorArm64()
     sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib"))
+            }
+        }
         val jvmMain by getting {
             dependencies {
                 compileOnly("org.jetbrains:annotations:20.1.0")

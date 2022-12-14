@@ -194,3 +194,4 @@ gradle-app.setting
 # End of https://www.toptal.com/developers/gitignore/api/java,c++,kotlin,gradle,intellij+all
 
 local.properties
+kotlin-js-store

@@ -9,7 +9,6 @@ enum class YGWrap //Type originates from: YGEnums.h
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGWrap {
             return values()[value]
         }

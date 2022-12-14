@@ -1,7 +1,5 @@
 package com.joingo.yoga.internal.enums
 
-import java.util.*
-
 enum class YGExperiment {
     kDoubleMeasureCallbacks;
 
@@ -27,9 +25,7 @@ enum class YGExperiment {
     }
 
     companion object {
-        private val ENABLED_EXPERIMENTS: MutableSet<YGExperiment> = EnumSet.noneOf(
-            YGExperiment::class.java
-        )
+        private val ENABLED_EXPERIMENTS: MutableSet<YGExperiment> = mutableSetOf()
 
         fun disableAllExperiments() {
             ENABLED_EXPERIMENTS.clear()

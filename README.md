@@ -1,6 +1,8 @@
 # Kotlin Yoga Layout
 
-A full Kotlin port of [Yoga Layout by Facebook](https://github.com/facebook/yoga)
+A pure Kotlin Multiplatform port of [Yoga Layout by Facebook](https://github.com/facebook/yoga).
+
+Supports JVM, Android, JS, iOS targets via common source set.
 
 ---
 
@@ -14,8 +16,12 @@ repositories {
 ```
 2. Add the dependency to your project
 ````kotlin
-dependencies {
-    implementation("com.joingo:yoga-kotlin:1.0.1")
+kotlin {
+    commonMain {
+        dependencies {
+            implementation("com.joingo.yoga:yoga-kotlin:1.0.0")
+        }
+    }
 }
 ````
 3. You're ready to go!

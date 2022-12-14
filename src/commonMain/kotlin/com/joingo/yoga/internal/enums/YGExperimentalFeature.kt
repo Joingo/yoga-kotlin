@@ -8,7 +8,6 @@ enum class YGExperimentalFeature {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGExperimentalFeature {
             return values()[value]
         }

@@ -11,7 +11,7 @@ enum class LayoutType //Type originates from: event.h
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
+        
         private var mappings: Map<Int, LayoutType>? = values().associate { it.intValue to it }
         private fun getMappings(): Map<Int, LayoutType>? {
             return mappings

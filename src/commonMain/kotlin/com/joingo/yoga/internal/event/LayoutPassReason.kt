@@ -12,7 +12,7 @@ enum class LayoutPassReason //Type originates from: event.h
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
+        
         private var mappings: Map<Int, LayoutPassReason>? =
             values().associate { it.intValue to it }
 

@@ -1,46 +1,34 @@
 package com.joingo.yoga.internal
 
-import com.joingo.yoga.internal.enums.YGEdge
-import com.joingo.yoga.internal.enums.YGUnit
-import com.joingo.yoga.internal.enums.YGWrap
-import com.joingo.yoga.internal.enums.YGAlign
-import com.joingo.yoga.internal.enums.YGDisplay
-import com.joingo.yoga.internal.enums.YGJustify
-import com.joingo.yoga.internal.enums.YGLogLevel
-import com.joingo.yoga.internal.enums.YGNodeType
-import com.joingo.yoga.internal.enums.YGOverflow
-import com.joingo.yoga.internal.enums.YGDimension
-import com.joingo.yoga.internal.enums.YGDirection
-import com.joingo.yoga.internal.enums.YGMeasureMode
-import com.joingo.yoga.internal.enums.YGPositionType
-import com.joingo.yoga.internal.enums.YGPrintOptions
-import com.joingo.yoga.internal.enums.YGFlexDirection
-import com.joingo.yoga.internal.enums.YGExperimentalFeature
-import com.joingo.yoga.internal.detail.CompactValue
-import java.util.Arrays
-import com.joingo.yoga.internal.interfaces.YGDirtiedFunc
-import com.joingo.yoga.internal.interfaces.YGBaselineFunc
-import com.joingo.yoga.internal.interfaces.YGPrintFunc
-import com.joingo.yoga.internal.interfaces.YGMeasureFunc
-import java.util.function.BiConsumer
 import com.joingo.yoga.internal.YGStyle.BitfieldRef
-import com.joingo.yoga.internal.interfaces.YGLogger
-import java.lang.RuntimeException
-import com.joingo.yoga.internal.interfaces.YGCloneNodeFunc
-import java.util.Objects
-import java.util.concurrent.atomic.AtomicInteger
-import com.joingo.yoga.internal.interfaces.YGNodeCleanupFunc
-import java.util.function.BiFunction
-import java.lang.UnsupportedOperationException
-import com.joingo.yoga.internal.detail.RefObject
+import com.joingo.yoga.internal.detail.CompactValue
 import com.joingo.yoga.internal.detail.Log
+import com.joingo.yoga.internal.detail.RefObject
 import com.joingo.yoga.internal.detail.Values
+import com.joingo.yoga.internal.enums.*
 import com.joingo.yoga.internal.event.*
 import com.joingo.yoga.internal.event.Event.publish
-import org.jetbrains.annotations.Contract
-import java.util.ArrayList
-import java.util.List
-import java.util.function.Function
+import com.joingo.yoga.internal.interfaces.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
+import kotlin.math.abs
+import kotlin.math.max
+import kotlin.math.min
+import kotlin.reflect.KClass
+
+// FIXME: Use real atomic
+internal class AtomicInteger {
+    fun incrementAndGet(): Int {
+        value += 1
+        return value
+    }
+
+    fun get(): Int {
+        return value
+    }
+
+    private var value = 0
+}
 
 object GlobalMembers {
     const val YGUndefined = Float.NaN
@@ -48,16 +36,16 @@ object GlobalMembers {
     val YGValueUndefined = YGValue(YGUndefined, YGUnit.YGUnitUndefined)
     val YGValueZero = YGValue(0f, YGUnit.YGUnitPoint)
     val leading = ArrayList(
-        List.of(YGEdge.YGEdgeTop, YGEdge.YGEdgeBottom, YGEdge.YGEdgeLeft, YGEdge.YGEdgeRight)
+        listOf(YGEdge.YGEdgeTop, YGEdge.YGEdgeBottom, YGEdge.YGEdgeLeft, YGEdge.YGEdgeRight)
     )
     val trailing = ArrayList(
-        List.of(YGEdge.YGEdgeBottom, YGEdge.YGEdgeTop, YGEdge.YGEdgeRight, YGEdge.YGEdgeLeft)
+        listOf(YGEdge.YGEdgeBottom, YGEdge.YGEdgeTop, YGEdge.YGEdgeRight, YGEdge.YGEdgeLeft)
     )
     val pos = ArrayList(
-        List.of(YGEdge.YGEdgeTop, YGEdge.YGEdgeBottom, YGEdge.YGEdgeLeft, YGEdge.YGEdgeRight)
+        listOf(YGEdge.YGEdgeTop, YGEdge.YGEdgeBottom, YGEdge.YGEdgeLeft, YGEdge.YGEdgeRight)
     )
     val dim = ArrayList(
-        List.of(
+        listOf(
             YGDimension.YGDimensionHeight,
             YGDimension.YGDimensionHeight,
             YGDimension.YGDimensionWidth,
@@ -69,16 +57,16 @@ object GlobalMembers {
     const val kDefaultFlexShrink = 0.0f
     const val kWebDefaultFlexShrink = 1.0f
     val defaultConfig = YGConfigNew()
-    val gCurrentGenerationCount = AtomicInteger()
+    internal val gCurrentGenerationCount = AtomicInteger()
     const val gPrintChanges = false
     const val gPrintSkips = false
     var gConfigInstanceCount = 0
     fun isUndefined(value: Float): Boolean {
-        return java.lang.Float.isNaN(value)
+        return value.isNaN()
     }
 
     fun isUndefined(value: Double): Boolean {
-        return java.lang.Double.isNaN(value)
+        return value.isNaN()
     }
 
     fun YGValueEqual(a: YGValue, b: YGValue): Boolean //Method definition originates from: Utils.cpp
@@ -91,7 +79,7 @@ object GlobalMembers {
             ) && isUndefined(b.value)
         ) {
             true
-        } else Math.abs(a.value - b.value) < 0.0001f
+        } else abs(a.value - b.value) < 0.0001f
     }
 
     fun YGValueEqual(a: CompactValue, b: CompactValue): Boolean {
@@ -104,7 +92,7 @@ object GlobalMembers {
                 b
             )
         ) {
-            Math.abs(a - b) < 0.0001f
+            abs(a - b) < 0.0001f
         } else isUndefined(a) && isUndefined(
             b
         )
@@ -116,7 +104,7 @@ object GlobalMembers {
                 b
             )
         ) {
-            Math.abs(a - b) < 0.0001
+            abs(a - b) < 0.0001
         } else isUndefined(a) && isUndefined(
             b
         )
@@ -125,7 +113,7 @@ object GlobalMembers {
     fun YGFloatMax(a: Float, b: Float): Float //Method definition originates from: Utils.cpp
     {
         if (!isUndefined(a) && !isUndefined(b)) {
-            return Math.max(a, b)
+            return max(a, b)
         }
         return if (isUndefined(a)) b else a
     }
@@ -147,7 +135,7 @@ object GlobalMembers {
     fun YGFloatMin(a: Float, b: Float): Float //Method definition originates from: Utils.cpp
     {
         if (!isUndefined(a) && !isUndefined(b)) {
-            return Math.min(a, b)
+            return min(a, b)
         }
         return if (isUndefined(a)) b else a
     }
@@ -570,7 +558,7 @@ object GlobalMembers {
         count: Int?
     ) //Method definition originates from: Yoga.cpp
     {
-        val children = ArrayList(Arrays.asList(*c))
+        val children = ArrayList(c.asList())
         YGNodeSetChildrenInternal(owner, children)
     }
 
@@ -812,9 +800,10 @@ object GlobalMembers {
     {
         updateStyle<YGDirection>(
             node,
-            YGDirection::class.java,
+            YGDirection::class,
             value,
-            YGStyle::directionBitfieldRef)
+            YGStyle::directionBitfieldRef
+        )
     }
 
     @kotlin.jvm.JvmStatic
@@ -825,9 +814,10 @@ object GlobalMembers {
     {
         updateStyle<YGFlexDirection>(
             node,
-            YGFlexDirection::class.java,
+            YGFlexDirection::class,
             flexDirection,
-            YGStyle::flexDirectionBitfieldRef)
+            YGStyle::flexDirectionBitfieldRef
+        )
     }
 
     @kotlin.jvm.JvmStatic
@@ -838,9 +828,10 @@ object GlobalMembers {
     {
         updateStyle<YGJustify>(
             node,
-            YGJustify::class.java,
+            YGJustify::class,
             justifyContent,
-            YGStyle::justifyContentBitfieldRef)
+            YGStyle::justifyContentBitfieldRef
+        )
     }
 
     @kotlin.jvm.JvmStatic
@@ -851,9 +842,10 @@ object GlobalMembers {
     {
         updateStyle<YGAlign>(
             node,
-            YGAlign::class.java,
+            YGAlign::class,
             alignContent,
-            YGStyle::alignContentBitfieldRef)
+            YGStyle::alignContentBitfieldRef
+        )
     }
 
     @kotlin.jvm.JvmStatic
@@ -864,9 +856,9 @@ object GlobalMembers {
     {
         updateStyle<YGAlign>(
             node,
-            YGAlign::class.java,
+            YGAlign::class,
             alignItems,
-            Function { obj: YGStyle -> obj.alignItemsBitfieldRef() })
+            { obj: YGStyle -> obj.alignItemsBitfieldRef() })
     }
 
     @kotlin.jvm.JvmStatic
@@ -877,9 +869,9 @@ object GlobalMembers {
     {
         updateStyle<YGAlign>(
             node,
-            YGAlign::class.java,
+            YGAlign::class,
             alignSelf,
-            Function { obj: YGStyle -> obj.alignSelfBitfieldRef() })
+            { obj: YGStyle -> obj.alignSelfBitfieldRef() })
     }
 
     @kotlin.jvm.JvmStatic
@@ -890,9 +882,9 @@ object GlobalMembers {
     {
         updateStyle<YGPositionType>(
             node,
-            YGPositionType::class.java,
+            YGPositionType::class,
             positionType,
-            Function { obj: YGStyle -> obj.positionTypeBitfieldRef() })
+            { obj: YGStyle -> obj.positionTypeBitfieldRef() })
     }
 
     @kotlin.jvm.JvmStatic
@@ -903,9 +895,9 @@ object GlobalMembers {
     {
         updateStyle<YGWrap>(
             node,
-            YGWrap::class.java,
+            YGWrap::class,
             flexWrap,
-            Function { obj: YGStyle -> obj.flexWrapBitfieldRef() })
+            { obj: YGStyle -> obj.flexWrapBitfieldRef() })
     }
 
     @kotlin.jvm.JvmStatic
@@ -916,9 +908,9 @@ object GlobalMembers {
     {
         updateStyle<YGOverflow>(
             node,
-            YGOverflow::class.java,
+            YGOverflow::class,
             overflow,
-            Function { obj: YGStyle -> obj.overflowBitfieldRef() })
+            { obj: YGStyle -> obj.overflowBitfieldRef() })
     }
 
     fun YGNodeStyleSetDisplay(
@@ -928,9 +920,9 @@ object GlobalMembers {
     {
         updateStyle<YGDisplay>(
             node,
-            YGDisplay::class.java,
+            YGDisplay::class,
             display,
-            Function { obj: YGStyle -> obj.displayBitfieldRef() })
+            { obj: YGStyle -> obj.displayBitfieldRef() })
     }
 
     fun YGNodeStyleSetFlex(node: YGNode, flex: Float) //Method definition originates from: Yoga.cpp
@@ -1067,7 +1059,7 @@ object GlobalMembers {
         edge: T,
         value: Float,
         unit: YGUnit,
-        values: Function<YGStyle, Values<T>>
+        values: (YGStyle) -> Values<T>
     ) {
         updateStyleIndexed(node, edge, CompactValue.Companion.ofMaybe(value, unit), values)
     }
@@ -1076,18 +1068,18 @@ object GlobalMembers {
         node: YGNode,
         edge: T,
         value: CompactValue,
-        values: Function<YGStyle, Values<T>>
+        values: (YGStyle) -> Values<T>
     ) {
         updateStyle(node, value,
             { ygStyle: YGStyle?, `val`: CompactValue ->
                 !CompactValue.Companion.equalsTo(
-                    values.apply(node.getStyle()).getCompactValue(
+                    values.invoke(node.getStyle()).getCompactValue(
                         edge!!.ordinal
                     ),
                     `val`
                 )
             }) { ygStyle: YGStyle?, `val`: CompactValue? ->
-            values.apply(node.getStyle())[edge!!.ordinal] = value
+            values.invoke(node.getStyle())[edge!!.ordinal] = value
         }
     }
 
@@ -1508,48 +1500,56 @@ object GlobalMembers {
         logger: YGLogger?
     ) //Method definition originates from: Yoga.cpp
     {
-        config.setLogger(Objects.requireNonNullElseGet(logger) {
-            YGLogger { ygConfig, ygNode, ygLogLevel, format, args ->
-                YGDefaultLog(
-                    ygConfig,
-                    ygNode,
-                    ygLogLevel,
-                    format,
-                    *args
-                )
-            }
-        })
+        config.setLogger(logger ?: YGLogger { ygConfig, ygNode, ygLogLevel, format, args ->
+            YGDefaultLog(
+                ygConfig,
+                ygNode,
+                ygLogLevel,
+                format,
+                *args
+            )
+        }
+        )
     }
 
-    @Contract("false, _ -> fail")
+    @OptIn(ExperimentalContracts::class)
     fun YGAssert(condition: Boolean, message: String?) //Method definition originates from: Yoga.cpp
     {
+        contract {
+            returns() implies condition
+        }
         if (!condition) {
             Log.log(null as YGNode?, YGLogLevel.YGLogLevelFatal, null, "%s\n", message)
             throw RuntimeException(message)
         }
     }
 
-    @Contract("_, false, _ -> fail")
+    @OptIn(ExperimentalContracts::class)
     fun YGAssertWithNode(
         node: YGNode?,
         condition: Boolean,
         message: String?
     ) //Method definition originates from: Yoga.cpp
     {
+        contract {
+            returns() implies condition
+        }
         if (!condition) {
             Log.log(node, YGLogLevel.YGLogLevelFatal, null, "%s\n", message)
             throw RuntimeException(message)
         }
     }
 
-    @Contract("_, false, _ -> fail")
+    @OptIn(ExperimentalContracts::class)
     fun YGAssertWithConfig(
         config: YGConfig?,
         condition: Boolean,
         message: String?
     ) //Method definition originates from: Yoga.cpp
     {
+        contract {
+            returns() implies condition
+        }
         if (!condition) {
             Log.log(config, YGLogLevel.YGLogLevelFatal, null, "%s\n", message)
             throw RuntimeException(message)
@@ -1728,7 +1728,8 @@ object GlobalMembers {
         vararg objects: Any?
     ): Int //Method definition originates from: Yoga.cpp
     {
-        when (ygLogLevel) {
+        // FIXME: Uncomment logging
+        /*when (ygLogLevel) {
             YGLogLevel.YGLogLevelError, YGLogLevel.YGLogLevelFatal -> {
                 System.err.printf("$s%n", *objects)
                 System.out.printf("$s%n", *objects)
@@ -1737,7 +1738,7 @@ object GlobalMembers {
                 "$s%n", *objects
             )
             else -> System.out.printf("$s%n", *objects)
-        }
+        }*/
         return 0
     }
 
@@ -1746,10 +1747,11 @@ object GlobalMembers {
     }
 
     fun YGConfigClone(oldConfig: YGConfig): YGConfig {
-        val config = oldConfig.clone()
+        throw NotImplementedError()
+        /*val config = oldConfig.clone()
         YGAssert(config != null, "Could not allocate memory for config")
         gConfigInstanceCount++
-        return config
+        return config*/
     }
 
     fun YGNodeDeepClone(oldNode: YGNode): YGNode {
@@ -1836,27 +1838,27 @@ object GlobalMembers {
 
     fun <T : Enum<T>> updateStyle(
         node: YGNode,
-        enumClazz: Class<T>,
+        enumClazz: KClass<T>,
         value: T,
-        fieldRef: Function<YGStyle, BitfieldRef<T>>
+        fieldRef: (YGStyle) -> BitfieldRef<T>
     ) {
         updateStyle(
             node,
             value,
             { ygStyle: YGStyle, newVal: T ->
-                fieldRef.apply(node.getStyle()).getValue(enumClazz) !== newVal
+                fieldRef.invoke(node.getStyle()).getValue(enumClazz) !== newVal
             }
-        ) { ygStyle: YGStyle, newVal: T -> fieldRef.apply(node.getStyle()).setValue(newVal) }
+        ) { ygStyle: YGStyle, newVal: T -> fieldRef.invoke(node.getStyle()).setValue(newVal) }
     }
 
     fun <T> updateStyle(
         node: YGNode,
         value: T,
-        needsUpdate: BiFunction<YGStyle, T, Boolean>,
-        update: BiConsumer<YGStyle, T>
+        needsUpdate: (YGStyle, T) -> Boolean,
+        update: (YGStyle, T) -> Unit
     ) {
-        if (needsUpdate.apply(node.getStyle(), value)) {
-            update.accept(node.getStyle(), value)
+        if (needsUpdate.invoke(node.getStyle(), value)) {
+            update.invoke(node.getStyle(), value)
             node.markDirtyAndPropogate()
         }
     }
@@ -2221,7 +2223,8 @@ object GlobalMembers {
             publish(node)
             val baseline = node.baseline(
                 node.getLayout()!!.measuredDimensions[YGDimension.YGDimensionWidth.getValue()],
-                node.getLayout()!!.measuredDimensions[YGDimension.YGDimensionHeight.getValue()], layoutContext
+                node.getLayout()!!.measuredDimensions[YGDimension.YGDimensionHeight.getValue()],
+                layoutContext
             )
 
             /* Event.NodeBaselineEnd */publish(node)
@@ -2511,7 +2514,8 @@ object GlobalMembers {
                 ).unwrap() + marginColumn
                 childHeightMeasureMode = YGMeasureMode.YGMeasureModeExactly
             }
-            if (!isMainAxisRow && node.getStyle()!!.overflow() == YGOverflow.YGOverflowScroll || node.getStyle()
+            if (!isMainAxisRow && node.getStyle()!!
+                    .overflow() == YGOverflow.YGOverflowScroll || node.getStyle()
                     .overflow() != YGOverflow.YGOverflowScroll
             ) {
                 if (YGFloatIsUndefined(childWidth) && !YGFloatIsUndefined(width)) {
@@ -2519,7 +2523,8 @@ object GlobalMembers {
                     childWidthMeasureMode = YGMeasureMode.YGMeasureModeAtMost
                 }
             }
-            if (isMainAxisRow && node.getStyle()!!.overflow() == YGOverflow.YGOverflowScroll || node.getStyle()
+            if (isMainAxisRow && node.getStyle()!!
+                    .overflow() == YGOverflow.YGOverflowScroll || node.getStyle()
                     .overflow() != YGOverflow.YGOverflowScroll
             ) {
                 if (YGFloatIsUndefined(childHeight) && !YGFloatIsUndefined(height)) {
@@ -2813,7 +2818,8 @@ object GlobalMembers {
         } else if (!child.isLeadingPositionDefined(crossAxis) && (YGNodeAlignItem(
                 node,
                 child
-            ) == YGAlign.YGAlignFlexEnd) xor (node.getStyle()!!.flexWrap() == YGWrap.YGWrapWrapReverse)
+            ) == YGAlign.YGAlignFlexEnd) xor (node.getStyle()!!
+                .flexWrap() == YGWrap.YGWrapWrapReverse)
         ) {
             child.setLayoutPosition(
                 node.getLayout()!!.measuredDimensions[dim[crossAxis.getValue()].getValue()] - child.getLayout()!!.measuredDimensions[dim[crossAxis.getValue()].getValue()],
@@ -3723,8 +3729,14 @@ object GlobalMembers {
         val marginAxisColumn = marginColumnLeading + marginColumnTrailing
         node.setLayoutBorder(node.getLeadingBorder(flexRowDirection), startEdge.getValue())
         node.setLayoutBorder(node.getTrailingBorder(flexRowDirection), endEdge.getValue())
-        node.setLayoutBorder(node.getLeadingBorder(flexColumnDirection), YGEdge.YGEdgeTop.getValue())
-        node.setLayoutBorder(node.getTrailingBorder(flexColumnDirection), YGEdge.YGEdgeBottom.getValue())
+        node.setLayoutBorder(
+            node.getLeadingBorder(flexColumnDirection),
+            YGEdge.YGEdgeTop.getValue()
+        )
+        node.setLayoutBorder(
+            node.getTrailingBorder(flexColumnDirection),
+            YGEdge.YGEdgeBottom.getValue()
+        )
         node.setLayoutPadding(
             node.getLeadingPadding(flexRowDirection, ownerWidth).unwrap(),
             startEdge.getValue()
@@ -3965,7 +3977,8 @@ object GlobalMembers {
                 )
             }
             node.setLayoutHadOverflow(
-                node.getLayout()!!.hadOverflow() or (collectedFlexItemsValues.remainingFreeSpace < 0)
+                node.getLayout()!!
+                    .hadOverflow() or (collectedFlexItemsValues.remainingFreeSpace < 0)
             )
 
             // STEP 6: MAIN-AXIS JUSTIFICATION & CROSS-AXIS SIZE DETERMINATION
@@ -4022,7 +4035,9 @@ object GlobalMembers {
                     if (child!!.getStyle()!!.display() == YGDisplay.YGDisplayNone) {
                         continue
                     }
-                    if (child.getStyle()!!.positionType() == YGPositionType.YGPositionTypeAbsolute) {
+                    if (child.getStyle()!!
+                            .positionType() == YGPositionType.YGPositionTypeAbsolute
+                    ) {
                         // If the child is absolutely positioned and has a
                         // top/left/bottom/right set, override all the previously computed
                         // positions to set it correctly.
@@ -4078,7 +4093,9 @@ object GlobalMembers {
                                 )
                                 val childStyle = child.getStyle()
                                 val childCrossSize = RefObject(
-                                    if (!childStyle!!.aspectRatio().isUndefined()) child.getMarginForAxis(
+                                    if (!childStyle!!.aspectRatio()
+                                            .isUndefined()
+                                    ) child.getMarginForAxis(
                                         crossAxis,
                                         availableInnerWidth
                                     )
@@ -4219,7 +4236,9 @@ object GlobalMembers {
                         ii++
                         continue
                     }
-                    if (child.getStyle()!!.positionType() != YGPositionType.YGPositionTypeAbsolute) {
+                    if (child.getStyle()!!
+                            .positionType() != YGPositionType.YGPositionTypeAbsolute
+                    ) {
                         if (child.getLineIndex() != i) {
                             break
                         }
@@ -4267,7 +4286,9 @@ object GlobalMembers {
                             ii++
                             continue
                         }
-                        if (child.getStyle()!!.positionType() != YGPositionType.YGPositionTypeAbsolute) {
+                        if (child.getStyle()!!
+                                .positionType() != YGPositionType.YGPositionTypeAbsolute
+                        ) {
                             when (YGNodeAlignItem(node, child)) {
                                 YGAlign.YGAlignFlexStart -> {
                                     child.setLayoutPosition(
@@ -4402,7 +4423,9 @@ object GlobalMembers {
                 YGNodeBoundAxis(node, mainAxis, maxLineMainDim, mainAxisownerSize, ownerWidth),
                 dim[mainAxis.getValue()].getValue()
             )
-        } else if (measureModeMainDim == YGMeasureMode.YGMeasureModeAtMost && node.getStyle()!!.overflow() == YGOverflow.YGOverflowScroll) {
+        } else if (measureModeMainDim == YGMeasureMode.YGMeasureModeAtMost && node.getStyle()!!
+                .overflow() == YGOverflow.YGOverflowScroll
+        ) {
             node.setLayoutMeasuredDimension(
                 YGFloatMax(
                     YGFloatMin(
@@ -4431,7 +4454,9 @@ object GlobalMembers {
                     ownerWidth
                 ), dim[crossAxis.getValue()].getValue()
             )
-        } else if (measureModeCrossDim == YGMeasureMode.YGMeasureModeAtMost && node.getStyle()!!.overflow() == YGOverflow.YGOverflowScroll) {
+        } else if (measureModeCrossDim == YGMeasureMode.YGMeasureModeAtMost && node.getStyle()!!
+                .overflow() == YGOverflow.YGOverflowScroll
+        ) {
             node.setLayoutMeasuredDimension(
                 YGFloatMax(
                     YGFloatMin(
@@ -4517,12 +4542,8 @@ object GlobalMembers {
     }
 
     fun YGMeasureModeName(mode: YGMeasureMode, performLayout: Boolean): String {
-        val N: Int = YGMeasureMode.Companion.SIZE
         val kMeasureModeNames = arrayOf("UNDEFINED", "EXACTLY", "AT_MOST")
         val kLayoutModeNames = arrayOf("LAY_UNDEFINED", "LAY_EXACTLY", "LAY_AT_MOST")
-        if (mode.getValue() >= N) {
-            return ""
-        }
         return if (performLayout) kLayoutModeNames[mode.getValue()] else kMeasureModeNames[mode.getValue()]
     }
 
@@ -4576,8 +4597,10 @@ object GlobalMembers {
         }
         val nodeLeft = node.getLayout()!!.position[YGEdge.YGEdgeLeft.getValue()].toDouble()
         val nodeTop = node.getLayout()!!.position[YGEdge.YGEdgeTop.getValue()].toDouble()
-        val nodeWidth = node.getLayout()!!.dimensions[YGDimension.YGDimensionWidth.getValue()].toDouble()
-        val nodeHeight = node.getLayout()!!.dimensions[YGDimension.YGDimensionHeight.getValue()].toDouble()
+        val nodeWidth =
+            node.getLayout()!!.dimensions[YGDimension.YGDimensionWidth.getValue()].toDouble()
+        val nodeHeight =
+            node.getLayout()!!.dimensions[YGDimension.YGDimensionHeight.getValue()].toDouble()
         val absoluteNodeLeft = absoluteLeft + nodeLeft
         val absoluteNodeTop = absoluteTop + nodeTop
         val absoluteNodeRight = absoluteNodeLeft + nodeWidth

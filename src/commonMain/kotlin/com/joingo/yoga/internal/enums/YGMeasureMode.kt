@@ -8,7 +8,6 @@ enum class YGMeasureMode {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGMeasureMode {
             return values()[value]
         }

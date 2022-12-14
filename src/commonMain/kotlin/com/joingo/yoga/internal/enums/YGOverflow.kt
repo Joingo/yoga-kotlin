@@ -8,7 +8,6 @@ enum class YGOverflow {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGOverflow {
             return values()[value]
         }

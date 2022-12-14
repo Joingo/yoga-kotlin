@@ -8,7 +8,7 @@ enum class YGLogLevel {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
+        
         fun forValue(value: Int): YGLogLevel {
             return values()[value]
         }

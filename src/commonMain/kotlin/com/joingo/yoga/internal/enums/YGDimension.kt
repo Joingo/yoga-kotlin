@@ -8,7 +8,6 @@ enum class YGDimension {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGDimension {
             return values()[value]
         }

@@ -8,7 +8,6 @@ enum class YGDisplay {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGDisplay {
             return values()[value]
         }

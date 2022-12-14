@@ -8,7 +8,7 @@ enum class YGJustify {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
+        
         fun forValue(value: Int): YGJustify {
             return values()[value]
         }

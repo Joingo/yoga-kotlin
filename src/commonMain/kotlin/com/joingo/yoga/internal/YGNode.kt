@@ -9,9 +9,7 @@ import com.joingo.yoga.internal.enums.YGDirection
 import com.joingo.yoga.internal.enums.YGMeasureMode
 import com.joingo.yoga.internal.enums.YGPositionType
 import com.joingo.yoga.internal.enums.YGFlexDirection
-import java.util.HashMap
 import com.joingo.yoga.internal.detail.CompactValue
-import java.util.Arrays
 import com.joingo.yoga.internal.interfaces.YGDirtiedFunc
 import com.joingo.yoga.internal.interfaces.YGBaselineFunc
 import com.joingo.yoga.internal.interfaces.BaselineWithContextFn
@@ -19,10 +17,8 @@ import com.joingo.yoga.internal.interfaces.YGPrintFunc
 import com.joingo.yoga.internal.interfaces.PrintWithContextFn
 import com.joingo.yoga.internal.interfaces.YGMeasureFunc
 import com.joingo.yoga.internal.interfaces.MeasureWithContextFn
-import java.util.function.BiConsumer
 import com.joingo.yoga.internal.detail.Values
-import java.util.ArrayList
-import java.util.function.Consumer
+import kotlin.math.max
 
 class YGNode {
     private var context_: Any? = null
@@ -39,7 +35,7 @@ class YGNode {
     private var children_ = ArrayList<YGNode>()
     private var config_: YGConfig? = YGConfig(null)
     private var resolvedDimensions_ = ArrayList(
-        Arrays.asList(GlobalMembers.YGValueUndefined, GlobalMembers.YGValueUndefined)
+        listOf(GlobalMembers.YGValueUndefined, GlobalMembers.YGValueUndefined)
     )
 
     constructor(node: YGNode) {
@@ -197,13 +193,13 @@ class YGNode {
 
     fun getNodeType(): YGNodeType {
         return com.joingo.yoga.internal.detail.GlobalMembers.Companion.getEnumData<YGNodeType>(
-            YGNodeType::class.java, flags, nodeType_
+            YGNodeType::class, flags, nodeType_
         )
     }
 
     fun setNodeType(nodeType: YGNodeType) {
         com.joingo.yoga.internal.detail.GlobalMembers.Companion.setEnumData<YGNodeType>(
-            YGNodeType::class.java, flags, nodeType_, nodeType
+            YGNodeType::class, flags, nodeType_, nodeType
         )
     }
 
@@ -394,9 +390,9 @@ class YGNode {
         children_[index!!] = child
     }
 
-    fun replaceChild(oldChild: YGNode, newChild: YGNode) {
+    /*fun replaceChild(oldChild: YGNode, newChild: YGNode) {
         children_.replaceAll { ygNode: YGNode -> if (ygNode == oldChild) newChild else ygNode }
-    }
+    }*/
 
     fun insertChild(child: YGNode, index: Int?) {
         children_.add(index!!, child)
@@ -574,7 +570,7 @@ class YGNode {
     }
 
     fun <T> iterChildrenAfterCloningIfNeeded(
-        callback: BiConsumer<YGNode, Any?>,
+        callback: (YGNode, Any?) -> Unit,
         cloneContext: Any?
     ) {
         var i = 0
@@ -585,7 +581,7 @@ class YGNode {
                 child.setOwner(this)
             }
             i += 1
-            callback.accept(c, cloneContext)
+            callback(c, cloneContext)
         }
     }
 
@@ -609,7 +605,7 @@ class YGNode {
             isDirty_,
             true
         )
-        children_.forEach(Consumer { obj: YGNode -> obj.markDirtyAndPropogateDownwards() })
+        children_.forEach { obj: YGNode -> obj.markDirtyAndPropogateDownwards() }
     }
 
     fun resolveFlexGrow(): Float {
@@ -658,7 +654,7 @@ class YGNode {
             style_!!.border(),
             GlobalMembers.leading[axis.getValue()], CompactValue.Companion.ofZero()
         )).convertToYgValue()
-        return Math.max(leadingBorder!!.value, 0.0f)
+        return max(leadingBorder!!.value, 0.0f)
     }
 
     fun getTrailingBorder(axis: YGFlexDirection): Float {
@@ -669,7 +665,7 @@ class YGNode {
             style_!!.border(),
             GlobalMembers.trailing[axis.getValue()], CompactValue.Companion.ofZero()
         )).convertToYgValue()
-        return Math.max(trailingBorder!!.value, 0.0f)
+        return max(trailingBorder!!.value, 0.0f)
     }
 
     fun getLeadingPadding(axis: YGFlexDirection, widthSize: Float): YGFloatOptional {
@@ -896,7 +892,7 @@ class YGNode {
         return resolvedDimensions_
     }
 
-    fun setResolvedDimensions(resolvedDimensions_: ArrayList<YGValue?>) {
+    fun setResolvedDimensions(resolvedDimensions_: ArrayList<YGValue>) {
         this.resolvedDimensions_ = resolvedDimensions_
     }
 

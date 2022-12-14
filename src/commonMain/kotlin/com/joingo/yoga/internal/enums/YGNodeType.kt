@@ -8,7 +8,6 @@ enum class YGNodeType {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGNodeType {
             return values()[value]
         }

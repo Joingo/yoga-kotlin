@@ -9,7 +9,6 @@ enum class YGUnit //Type originates from: YGEnums.h
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGUnit {
             return values()[value]
         }

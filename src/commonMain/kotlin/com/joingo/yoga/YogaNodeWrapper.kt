@@ -6,46 +6,29 @@
  */
 package com.joingo.yoga
 
-import com.joingo.yoga.enums.YogaEdge
-import com.joingo.yoga.enums.YogaUnit
-import com.joingo.yoga.enums.YogaWrap
-import com.joingo.yoga.enums.YogaAlign
-import com.joingo.yoga.enums.YogaDisplay
-import com.joingo.yoga.enums.YogaJustify
-import com.joingo.yoga.enums.YogaOverflow
-import com.joingo.yoga.enums.YogaDirection
-import com.joingo.yoga.enums.YogaMeasureMode
-import com.joingo.yoga.enums.YogaPositionType
-import com.joingo.yoga.enums.YogaFlexDirection
-import com.joingo.yoga.internal.enums.YGEdge
-import com.joingo.yoga.internal.enums.YGWrap
-import com.joingo.yoga.internal.enums.YGAlign
-import com.joingo.yoga.internal.enums.YGDisplay
-import com.joingo.yoga.internal.enums.YGJustify
-import com.joingo.yoga.internal.enums.YGOverflow
-import com.joingo.yoga.internal.enums.YGDirection
-import com.joingo.yoga.internal.enums.YGMeasureMode
-import com.joingo.yoga.internal.enums.YGPositionType
-import com.joingo.yoga.internal.enums.YGFlexDirection
-import com.joingo.yoga.internal.interfaces.YGMeasureFunc
-import java.lang.CloneNotSupportedException
-import java.lang.RuntimeException
-import com.joingo.yoga.interfaces.YogaMeasureFunction
+import com.joingo.yoga.enums.*
 import com.joingo.yoga.interfaces.YogaBaselineFunction
+import com.joingo.yoga.interfaces.YogaMeasureFunction
 import com.joingo.yoga.internal.*
-import java.util.ArrayList
+import com.joingo.yoga.internal.enums.*
+import com.joingo.yoga.internal.interfaces.YGMeasureFunc
 
-class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) : com.joingo.yoga.YogaNode(),
-    Cloneable {
-    private var mOwner: com.joingo.yoga.YogaNodeWrapper? = null
-    private var mChildren: ArrayList<com.joingo.yoga.YogaNodeWrapper>? = null
+class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) :
+    YogaNode() {
+    private var mOwner: YogaNodeWrapper? = null
+    private var mChildren: ArrayList<YogaNodeWrapper>? = null
     private var mMeasureFunction: YogaMeasureFunction? = null
     private var mBaselineFunction: YogaBaselineFunction? = null
     private var mData: Any? = null
     private val mLayoutDirection = 0
 
     internal constructor() : this(GlobalMembers.YGNodeNew()) {}
-    internal constructor(config: com.joingo.yoga.YogaConfig) : this(GlobalMembers.YGNodeNewWithConfig((config as com.joingo.yoga.YogaConfigWrapper).mNativePointer)) {}
+    internal constructor(config: YogaConfig) : this(
+        GlobalMembers.YGNodeNewWithConfig(
+            (config as YogaConfigWrapper).mNativePointer
+        )
+    ) {
+    }
 
     override fun reset() {
         mMeasureFunction = null
@@ -58,13 +41,13 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         return if (mChildren == null) 0 else mChildren!!.size
     }
 
-    override fun getChildAt(i: Int): com.joingo.yoga.YogaNodeWrapper {
+    override fun getChildAt(i: Int): YogaNodeWrapper {
         checkNotNull(mChildren) { "YogaNode does not have children" }
         return mChildren!![i]
     }
 
-    override fun addChildAt(c: com.joingo.yoga.YogaNode?, i: Int) {
-        if (c !is com.joingo.yoga.YogaNodeWrapper) {
+    override fun addChildAt(c: YogaNode?, i: Int) {
+        if (c !is YogaNodeWrapper) {
             return
         }
         val child = c
@@ -85,8 +68,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         return GlobalMembers.YGNodeIsReferenceBaseline(mNativePointer)
     }
 
-    fun swapChildAt(newChild: com.joingo.yoga.YogaNode?, position: Int) {
-        if (newChild !is com.joingo.yoga.YogaNodeWrapper) {
+    fun swapChildAt(newChild: YogaNode?, position: Int) {
+        if (newChild !is YogaNodeWrapper) {
             return
         }
         val child = newChild
@@ -96,47 +79,14 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeSwapChild(mNativePointer, child.mNativePointer, position)
     }
 
-    override fun cloneWithChildren(): com.joingo.yoga.YogaNodeWrapper {
-        return try {
-            val clonedYogaNode = super.clone() as com.joingo.yoga.YogaNodeWrapper
-            if (clonedYogaNode.mChildren != null) {
-                clonedYogaNode.mChildren = ArrayList(clonedYogaNode.mChildren)
-            }
-            val clonedNativePointer = GlobalMembers.YGNodeClone(mNativePointer)
-            clonedYogaNode.mOwner = null
-            clonedYogaNode.mNativePointer = clonedNativePointer
-            for (i in 0 until clonedYogaNode.getChildCount()) {
-                clonedYogaNode.swapChildAt(clonedYogaNode.getChildAt(i).cloneWithChildren(), i)
-            }
-            clonedYogaNode
-        } catch (ex: CloneNotSupportedException) {
-            // This class implements Cloneable, this should not happen
-            throw RuntimeException(ex)
-        }
-    }
-
-    override fun cloneWithoutChildren(): com.joingo.yoga.YogaNodeWrapper {
-        return try {
-            val clonedYogaNode = super.clone() as com.joingo.yoga.YogaNodeWrapper
-            val clonedNativePointer = GlobalMembers.YGNodeClone(mNativePointer)
-            clonedYogaNode.mOwner = null
-            clonedYogaNode.mNativePointer = clonedNativePointer
-            clonedYogaNode.clearChildren()
-            clonedYogaNode
-        } catch (ex: CloneNotSupportedException) {
-            // This class implements Cloneable, this should not happen
-            throw RuntimeException(ex)
-        }
-    }
-
     private fun clearChildren() {
         mChildren = null
         mNativePointer.clearChildren()
     }
 
-    override fun removeChildAt(i: Int): com.joingo.yoga.YogaNodeWrapper {
+    override fun removeChildAt(i: Int): YogaNodeWrapper {
         checkNotNull(mChildren) { "Trying to remove a child of a YogaNode that does not have children" }
-        val child: com.joingo.yoga.YogaNodeWrapper = mChildren!!.removeAt(i)
+        val child: YogaNodeWrapper = mChildren!!.removeAt(i)
         child.mOwner = null
         GlobalMembers.YGNodeRemoveChild(mNativePointer, child.mNativePointer)
         return child
@@ -149,24 +99,24 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
      *
      * @return the [YogaNode] that owns this [YogaNode].
      */
-    override fun getOwner(): com.joingo.yoga.YogaNodeWrapper? {
+    override fun getOwner(): YogaNodeWrapper? {
         return mOwner
     }
 
     @Deprecated("Use #getOwner() instead. This will be removed in the next version.")
-    override fun getParent(): com.joingo.yoga.YogaNodeWrapper? {
+    override fun getParent(): YogaNodeWrapper? {
         return getOwner()
     }
 
-    override fun indexOf(child: com.joingo.yoga.YogaNode?): Int {
+    override fun indexOf(child: YogaNode?): Int {
         return if (mChildren == null) -1 else mChildren!!.indexOf(child)
     }
 
     override fun calculateLayout(width: Float, height: Float) {
         var nativePointers: Array<YGNode?>? = null
-        var nodes: Array<com.joingo.yoga.YogaNodeWrapper>? = null
+        var nodes: Array<YogaNodeWrapper>? = null
         freeze(null)
-        val n = ArrayList<com.joingo.yoga.YogaNodeWrapper>()
+        val n = ArrayList<YogaNodeWrapper>()
         n.add(this)
         for (i in n.indices) {
             val parent = n[i]
@@ -189,10 +139,10 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         )
     }
 
-    private fun freeze(parent: com.joingo.yoga.YogaNode?) {
+    private fun freeze(parent: YogaNode?) {
         val data = getData()
-        if (data is com.joingo.yoga.YogaNode.Inputs) {
-            (data as com.joingo.yoga.YogaNode.Inputs).freeze(this, parent)
+        if (data is Inputs) {
+            (data as Inputs).freeze(this, parent)
         }
     }
 
@@ -208,8 +158,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         return GlobalMembers.YGNodeIsDirty(mNativePointer)
     }
 
-    override fun copyStyle(srcNode: com.joingo.yoga.YogaNode?) {
-        if (srcNode !is com.joingo.yoga.YogaNodeWrapper) {
+    override fun copyStyle(srcNode: YogaNode?) {
+        if (srcNode !is YogaNodeWrapper) {
             return
         }
         GlobalMembers.YGNodeCopyStyle(mNativePointer, srcNode.mNativePointer)
@@ -381,8 +331,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetFlexShrink(mNativePointer, flexShrink)
     }
 
-    override fun getFlexBasis(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getFlexBasis(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetFlexBasis(
                 mNativePointer
             )
@@ -401,8 +351,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetFlexBasisAuto(mNativePointer)
     }
 
-    override fun getMargin(edge: YogaEdge): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getMargin(edge: YogaEdge): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetMargin(
                 mNativePointer,
                 YGEdge.Companion.forValue(edge.intValue())
@@ -433,8 +383,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         )
     }
 
-    override fun getPadding(edge: YogaEdge): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getPadding(edge: YogaEdge): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetPadding(
                 mNativePointer,
                 YGEdge.Companion.forValue(edge.intValue())
@@ -473,8 +423,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         )
     }
 
-    override fun getPosition(edge: YogaEdge): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getPosition(edge: YogaEdge): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetPosition(
                 mNativePointer,
                 YGEdge.Companion.forValue(edge.intValue())
@@ -498,8 +448,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         )
     }
 
-    override fun getWidth(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getWidth(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetWidth(
                 mNativePointer
             )
@@ -518,8 +468,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetWidthAuto(mNativePointer)
     }
 
-    override fun getHeight(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getHeight(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetHeight(
                 mNativePointer
             )
@@ -538,8 +488,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetHeightAuto(mNativePointer)
     }
 
-    override fun getMinWidth(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getMinWidth(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetMinWidth(
                 mNativePointer
             )
@@ -554,8 +504,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetMinWidthPercent(mNativePointer, percent)
     }
 
-    override fun getMinHeight(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getMinHeight(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetMinHeight(
                 mNativePointer
             )
@@ -570,8 +520,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetMinHeightPercent(mNativePointer, percent)
     }
 
-    override fun getMaxWidth(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getMaxWidth(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetMaxWidth(
                 mNativePointer
             )
@@ -586,8 +536,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         GlobalMembers.YGNodeStyleSetMaxWidthPercent(mNativePointer, percent)
     }
 
-    override fun getMaxHeight(): com.joingo.yoga.YogaValue? {
-        return com.joingo.yoga.YogaNodeWrapper.Companion.valueFromNative(
+    override fun getMaxHeight(): YogaValue? {
+        return valueFromNative(
             GlobalMembers.YGNodeStyleGetMaxHeight(
                 mNativePointer
             )
@@ -685,7 +635,7 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
      *
      * @return the nativePointer of the newNode [YogaNode]
      */
-    private fun replaceChild(newNode: com.joingo.yoga.YogaNodeWrapper, childIndex: Int): YGNode {
+    private fun replaceChild(newNode: YogaNodeWrapper, childIndex: Int): YGNode {
         checkNotNull(mChildren) { "Cannot replace child. YogaNode does not have children" }
         mChildren!!.removeAt(childIndex)
         mChildren!!.add(childIndex, newNode)
@@ -765,8 +715,8 @@ class YogaNodeWrapper private constructor(protected var mNativePointer: YGNode) 
         private const val LAYOUT_MARGIN_START_INDEX: Byte = 6
         private const val LAYOUT_PADDING_START_INDEX: Byte = 10
         private const val LAYOUT_BORDER_START_INDEX: Byte = 14
-        private fun valueFromNative(value: YGValue?): com.joingo.yoga.YogaValue {
-            return com.joingo.yoga.YogaValue(
+        private fun valueFromNative(value: YGValue?): YogaValue {
+            return YogaValue(
                 value!!.value,
                 YogaUnit.Companion.fromInt(value.unit!!.getValue())
             )

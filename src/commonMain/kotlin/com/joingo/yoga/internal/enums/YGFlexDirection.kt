@@ -8,7 +8,7 @@ enum class YGFlexDirection {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
+        
         fun forValue(value: Int): YGFlexDirection {
             return values()[value]
         }

@@ -9,7 +9,6 @@ enum class YGAlign //Type originates from: YGEnums.h
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGAlign {
             return values()[value]
         }

@@ -8,7 +8,6 @@ enum class YGDirection {
     }
 
     companion object {
-        const val SIZE = Integer.SIZE
         fun forValue(value: Int): YGDirection {
             return values()[value]
         }

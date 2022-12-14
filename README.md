@@ -1,6 +1,6 @@
-# Meditate Layout
+# Kotlin Yoga Layout
 
-Meditate Layout is a full Java port of [Yoga Layout by Facebook](https://github.com/facebook/yoga)
+A full Kotlin port of [Yoga Layout by Facebook](https://github.com/facebook/yoga)
 
 ---
 
@@ -9,13 +9,13 @@ Meditate Layout is a full Java port of [Yoga Layout by Facebook](https://github.
 1. Add the repository to your Gradle project 
 ```kotlin
 repositories {
-    maven("https://raw.githubusercontent.com/NickAcPT/LightCraftMaven/main/")
+    maven("https://maven.pkg.github.com/Joingo/yoga-kotlin")
 }
 ```
 2. Add the dependency to your project
 ````kotlin
 dependencies {
-    implementation("io.github.orioncraftmc:meditate-layout:1.0.1")
+    implementation("com.joingo:yoga-kotlin:1.0.1")
 }
 ````
 3. You're ready to go!

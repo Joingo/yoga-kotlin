@@ -3,8 +3,8 @@ plugins {
     `maven-publish`
 }
 
-group = "io.github.orioncraftmc"
-version = "1.0.1"
+group = "com.joingo.yoga"
+version = "1.0.0"
 
 repositories {
     mavenCentral()

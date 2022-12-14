@@ -11,10 +11,10 @@ repositories {
 }
 
 kotlin {
-    jvm() {
-        //sourceCompatibility = JavaVersion.VERSION_1_8
-        //targetCompatibility = JavaVersion.VERSION_1_8
-    }
+    jvm()
+    /*js(IR).browser()
+    ios()
+    iosSimulatorArm64()*/
     sourceSets {
         val jvmMain by getting {
             dependencies {
@@ -33,19 +33,16 @@ tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-/*publishing {
+publishing {
     repositories {
-        val lightCraftRepoDir = project.findProperty("lightcraft.repo.location")
-        if (lightCraftRepoDir != null) {
-            maven {
-                name = "LightCraftRepo"
-                url = File(lightCraftRepoDir.toString()).toURI()
+        maven("https://maven.pkg.github.com/Joingo/yoga-kotlin") {
+            name = "GitHubPackages"
+            credentials {
+                username =
+                    (project.findProperty("gpr.user") ?: System.getenv("GPR_USER")) as? String
+                password =
+                    (project.findProperty("gpr.key") ?: System.getenv("GPR_API_KEY")) as? String
             }
         }
     }
-    publications {
-        create<MavenPublication>("maven") {
-            from(components["java"])
-        }
-    }
-}*/
+}

@@ -1,5 +1,5 @@
 plugins {
-    java
+    kotlin("multiplatform") version "1.7.22"
     `maven-publish`
 }
 
@@ -10,22 +10,30 @@ repositories {
     mavenCentral()
 }
 
-dependencies {
-    compileOnly("org.jetbrains:annotations:20.1.0")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine")
+kotlin {
+    jvm() {
+        //sourceCompatibility = JavaVersion.VERSION_1_8
+        //targetCompatibility = JavaVersion.VERSION_1_8
+    }
+    sourceSets {
+        val jvmMain by getting {
+            dependencies {
+                compileOnly("org.jetbrains:annotations:20.1.0")
+            }
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation("org.junit.jupiter:junit-jupiter-api:5.6.0")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.6.0")
+            }
+        }
+    }
 }
-
-java {
-    withSourcesJar()
-}
-
-tasks.getByName<Test>("test") {
+tasks.withType<Test> {
     useJUnitPlatform()
 }
 
-publishing {
+/*publishing {
     repositories {
         val lightCraftRepoDir = project.findProperty("lightcraft.repo.location")
         if (lightCraftRepoDir != null) {
@@ -40,4 +48,4 @@ publishing {
             from(components["java"])
         }
     }
-}
+}*/

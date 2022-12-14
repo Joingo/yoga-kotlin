@@ -1,2 +1,2 @@
-rootProject.name = "meditate-layout"
+rootProject.name = "yoga-kotlin"
 

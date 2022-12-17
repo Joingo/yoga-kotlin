@@ -1,8 +1,10 @@
-# Kotlin Yoga Layout
+# Yoga Layout / Flexbox
 
-A pure Kotlin Multiplatform port of [Yoga Layout by Facebook](https://github.com/facebook/yoga).
+A pure Kotlin Multiplatform CSS flexbox implementation.
 
-Supports JVM, Android, JS, iOS targets via common source set.
+Code and unit tests translated from the original C source code of [Yoga Layout by Facebook](https://github.com/facebook/yoga).
+
+Supports JVM, Android, JS, iOS targets and is usable in common source set.
 
 ---
 
